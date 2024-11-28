@@ -3,7 +3,7 @@ beautifulsoup4==4.12.0  # Latest compatible version
 bidict==0.22.0  # Compatible with Python 3.8
 blinker==1.5  # Last compatible version before 1.8.x
 bs4==0.0.1  # This package is generally unnecessary if you already have beautifulsoup4
-certifi==2023.6.15  # Stable version
+certifi==2023.5.7
 cffi==1.15.1  # Compatible with Python 3.8
 charset-normalizer==2.1.0  # Compatible version
 click==8.0.4  # Latest stable version for Python 3.8
