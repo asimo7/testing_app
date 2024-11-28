@@ -12,7 +12,7 @@ contourpy==1.1.1  # Compatible with Python 3.8
 cycler==0.11.0  # Compatible with Python 3.8
 et_xmlfile==1.1.0  # Compatible with Python 3.8
 Flask==2.2.3  # Flask 3.1+ might not be fully compatible with Python 3.8, 2.2.x is stable
-Flask-Cors==3.1.1  # Stable version
+Flask-Cors==3.0.10  # Stable version
 Flask-SocketIO==5.2.0  # Compatible with Python 3.8
 fonttools==4.34.4  # Compatible with Python 3.8
 h11==0.13.0  # Compatible with Python 3.8
