@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import "./App.css";
 
-const socket = io("https://asimo7.github.io");
+// Use environment variable for socket URL, falling back to localhost if not provided
+const socket = io(process.env.REACT_APP_SOCKET_URL || "http://localhost:5000");
 
 function App() {
   const [warrants, setWarrants] = useState([]);
@@ -22,7 +23,7 @@ function App() {
   const [selectedTable, setSelectedTable] = useState("main");
   const [filteredWatchlist, setFilteredWatchlist] = useState(watchlist);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
-  const [showFilters, setShowFilters] = useState(true); // New state for toggling filters
+  const [showFilters, setShowFilters] = useState(true);
 
   const getChangeClass = (value) => {
     if (value > 0) {
@@ -178,6 +179,7 @@ function App() {
       setFilteredWatchlist(sortedData);
     }
   };
+
   const renderTable = () => {
     const tableData = selectedTable === "main" ? filteredWarrants : filteredWatchlist;
 
@@ -205,146 +207,103 @@ function App() {
               Change {sortConfig.key === "change" && (sortConfig.direction === "asc" ? "↑" : (sortConfig.direction === "desc" ? "↓" : ""))}
             </th>
             <th onClick={() => handleSort("percent_change")}>
-              % Change {sortConfig.key === "percent_change" && (sortConfig.direction === "asc" ? "↑" : (sortConfig.direction === "desc" ? "↓" : ""))}
+              Percent Change {sortConfig.key === "percent_change" && (sortConfig.direction === "asc" ? "↑" : (sortConfig.direction === "desc" ? "↓" : ""))}
             </th>
             <th onClick={() => handleSort("VWAP")}>
               VWAP {sortConfig.key === "VWAP" && (sortConfig.direction === "asc" ? "↑" : (sortConfig.direction === "desc" ? "↓" : ""))}
             </th>
-            <th onClick={() => handleSort("TO")}>
-              TO {sortConfig.key === "TO" && (sortConfig.direction === "asc" ? "↑" : (sortConfig.direction === "desc" ? "↓" : ""))}
-            </th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {tableData.length > 0 ? (
-            tableData.map((row, index) => (
-              <tr key={index}>
-                <td>
-                  <span
-                    style={{
-                      cursor: "pointer",
-                      color: watchlist.some((item) => item.symbol === row.symbol) ? "gold" : "gray",
-                    }}
-                    onClick={() => toggleWatchlist(row)}
-                  >
-                    ★
-                  </span>
-                </td>
-                <td>{row.date}</td>
-                <td>{row.symbol}</td>
-                <td>{row.name}</td>
-                <td>{row.price.toFixed(2)} RM</td>
-                <td>{row.volume.toLocaleString()}</td>
-                <td className={getChangeClass(row.change)}>{row.change}</td>
-                <td className={getChangeClass(row.percent_change)}>{row.percent_change}%</td>
-                <td>{row.VWAP}</td>
-                <td>{row.TO}</td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="10">No data available</td>
+          {tableData.map((warrant) => (
+            <tr key={warrant.symbol}>
+              <td className={warrant.star ? "starred" : ""}>⭐</td>
+              <td>{warrant.date}</td>
+              <td>{warrant.symbol}</td>
+              <td>{warrant.name}</td>
+              <td>{warrant.price}</td>
+              <td>{warrant.volume}</td>
+              <td className={getChangeClass(warrant.change)}>{warrant.change}</td>
+              <td className={getChangeClass(warrant.percent_change)}>{warrant.percent_change}%</td>
+              <td>{warrant.VWAP}</td>
+              <td>
+                <button onClick={() => toggleWatchlist(warrant)}>
+                  {watchlist.some((item) => item.symbol === warrant.symbol) ? "Remove" : "Add"}
+                </button>
+              </td>
             </tr>
-          )}
+          ))}
         </tbody>
       </table>
     );
   };
 
-  const handleTableChange = (value) => {
-    setSelectedTable(value);
-    setFilters({
-      symbol: "",
-      name: "",
-      priceMin: "",
-      priceMax: "",
-      volumeMin: "",
-      volumeMax: "",
-    });
-
-    if (value === "main") {
-      setFilteredWarrants(warrants);
-    } else {
-      setFilteredWatchlist(watchlist);
-    }
-  };
-
   return (
     <div className="App">
-      <h1 className="titlename">Live Stock Data Table</h1>
-
-      <button class="mainbutton" onClick={() => setShowFilters((prev) => !prev)}>
-        {showFilters ? "Hide Filters" : "Show Filters"}
+      <h1>Warrant Watchlist</h1>
+      <button onClick={() => setShowFilters(!showFilters)}>
+        {showFilters ? "Hide" : "Show"} Filters
       </button>
-
       {showFilters && (
-        <div className="filters">
-          <input
-            type="text"
-            name="symbol"
-            placeholder="Filter by Symbol"
-            value={filters.symbol}
-            onChange={handleFilterChange}
-          />
-          <input
-            type="text"
-            name="name"
-            placeholder="Filter by Name"
-            value={filters.name}
-            onChange={handleFilterChange}
-          />
-          <input
-            type="number"
-            name="volumeMin"
-            placeholder="Min Volume"
-            value={filters.volumeMin}
-            onChange={handleFilterChange}
-          />
-          <input
-            type="number"
-            name="volumeMax"
-            placeholder="Max Volume"
-            value={filters.volumeMax}
-            onChange={handleFilterChange}
-          />
-          <input
-            type="number"
-            name="priceMin"
-            placeholder="Min Price"
-            value={filters.priceMin}
-            onChange={handleFilterChange}
-          />
-          <input
-            type="number"
-            name="priceMax"
-            placeholder="Max Price"
-            value={filters.priceMax}
-            onChange={handleFilterChange}
-          />
-          <button onClick={applyFilters}>Apply Filters</button>
-          <button onClick={clearFilters}>Clear Filters</button>
+        <div>
+          {/* Filters */}
+          <div>
+            <input
+              type="text"
+              name="symbol"
+              value={filters.symbol}
+              onChange={handleFilterChange}
+              placeholder="Filter by Symbol"
+            />
+            <input
+              type="text"
+              name="name"
+              value={filters.name}
+              onChange={handleFilterChange}
+              placeholder="Filter by Name"
+            />
+            <input
+              type="number"
+              name="priceMin"
+              value={filters.priceMin}
+              onChange={handleFilterChange}
+              placeholder="Min Price"
+            />
+            <input
+              type="number"
+              name="priceMax"
+              value={filters.priceMax}
+              onChange={handleFilterChange}
+              placeholder="Max Price"
+            />
+            <input
+              type="number"
+              name="volumeMin"
+              value={filters.volumeMin}
+              onChange={handleFilterChange}
+              placeholder="Min Volume"
+            />
+            <input
+              type="number"
+              name="volumeMax"
+              value={filters.volumeMax}
+              onChange={handleFilterChange}
+              placeholder="Max Volume"
+            />
+            <button onClick={applyFilters}>Apply Filters</button>
+            <button onClick={clearFilters}>Clear Filters</button>
+          </div>
+          <div>
+            <button onClick={getBiggestWinners}>Biggest Winners</button>
+            <button onClick={getBiggestLosers}>Biggest Losers</button>
+          </div>
         </div>
       )}
-      <div className="extrabutton">
-        <button onClick={getBiggestWinners}>Biggest Winners</button>
-        <button onClick={getBiggestLosers}>Biggest Losers</button>
+      <div>
+        <button onClick={() => setSelectedTable("main")}>Main Table</button>
+        <button onClick={() => setSelectedTable("watchlist")}>Watchlist</button>
       </div>
-      <br />
-      <button
-        className={`mainbutton ${selectedTable === "main" ? "toggled" : ""}`}
-        onClick={() => handleTableChange("main")}
-        disabled={selectedTable === "main"}
-      >
-        Main Table
-      </button>
-      <button
-        className={`mainbutton ${selectedTable === "watchlist" ? "toggled" : ""}`}
-        onClick={() => handleTableChange("watchlist")}
-        disabled={selectedTable === "watchlist"}
-      >
-        Watchlist
-      </button>
-
       {renderTable()}
     </div>
   );
