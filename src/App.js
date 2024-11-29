@@ -2,8 +2,7 @@ import React, { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import "./App.css";
 
-
-const socket = io(process.env.REACT_APP_SOCKET_URL || "http://localhost:5000");
+const socket = io("http://SimonTeh.pythonanywhere.com:5002");
 function App() {
   const [warrants, setWarrants] = useState([]);
   const [filteredWarrants, setFilteredWarrants] = useState([]);
